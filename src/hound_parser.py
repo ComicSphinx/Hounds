@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup as bs
 
 def get_page():
-    link = 'https://intelinvest.ru/public-portfolio/id/' # put your public-portfolio link here
+    link = 'link'
     
     return (requests.get(link))
 
