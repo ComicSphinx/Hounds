@@ -18,20 +18,21 @@ def handler_get_cost(update: Update, _: CallbackContext) -> None:
     pool = ThreadPool(processes=1)
     cost = pool.apply_async(hound_parser.parse_cost)
     cost = cost.get()
-    update.message.reply_text("Стоимость портфеля: " + cost)
+    update.message.reply_text("Investment portfolio value: " + cost)
 
 def handler_get_income(update: Update, _: CallbackContext) -> None:
     pool = ThreadPool(processes=1)
     income = pool.apply_async(hound_parser.parse_income)
     income = income.get()
-    update.message.reply_text("Прибыль: " + income)
+    update.message.reply_text("Income: " + income)
 
 def handler_get_auto_info(update: Update, _: CallbackContext) -> None:
     print("/get_auto_info")
     # goal income in RUB
     goal_income = 290
     # wait 60 minutes
-    time_wait = 60 * 60
+    # time_wait = 60 * 60
+    time_wait = 15
     while(True):
         time.sleep(time_wait)
     
@@ -41,7 +42,7 @@ def handler_get_auto_info(update: Update, _: CallbackContext) -> None:
         current_income = get_parse_data.get()
 
         if (goal_income <= float(current_income)):
-            update.message.reply_text("Цель достигнута! Ваш доход:" + current_income)
+            update.message.reply_text("Goal achieved! Your income:" + current_income)
 
 def main():
     updater = Updater(token = 'yourToken', use_context = True)
