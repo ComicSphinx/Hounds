@@ -1,3 +1,5 @@
+# @Author: Daniil Maslov (ComicSphinx)
+
 from telegram import Update, Message
 from telegram.ext import Updater, CommandHandler, CallbackContext
 from multiprocessing.pool import ThreadPool
