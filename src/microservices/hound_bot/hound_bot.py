@@ -18,14 +18,19 @@ def handler_start(update, context):
     update.message.reply_text("Use /get_income to get income")
     update.message.reply_text("Use /get_auto_info")
 
-def handler_get_cost(update: Update, _: CallbackContext) -> None:
+def get_data():
     data = requests.get("http://127.0.0.1:5000/get/id")
     data = data.json()
+    return data
+
+def handler_get_cost(update: Update, _: CallbackContext) -> None:
+    print("/get_cost")
+    data = get_data()
     update.message.reply_text("Investment portfolio value: " + str(data['cost']) + "Rub")
 
 def handler_get_income(update: Update, _: CallbackContext) -> None:
-    data = requests.get("http://127.0.0.1:5000/get/id")
-    data = data.json()
+    print("/get_income")
+    data = get_data()
     update.message.reply_text("Investment portfolio income: " + str(data['income']) + "Rub")
 
 def handler_get_auto_info(update: Update, _: CallbackContext) -> None:
@@ -33,15 +38,13 @@ def handler_get_auto_info(update: Update, _: CallbackContext) -> None:
     goal_income = 300
     # wait 60 minutes
     time_wait = 60 * 60
-    # wait 15 seconds
-    # time_wait = 15
+    # wait 5 seconds (only for test the app)
+    # time_wait = 5
 
     while(True):
         time.sleep(time_wait)
-        data = requests.get("http://127.0.0.1:5000/get/id")
-        data = data.json()
+        data = get_data()
 
-        print("goal_income:", goal_income)
         print("float(data['income'])", float(data['income']))
         if (goal_income <= float(data['income'])):
             update.message.reply_text("Congratulations! Goal achieved! Your income:" + str(data['income']) + "Rub")
@@ -66,7 +69,7 @@ def handler_get_auto_info(update: Update, _: CallbackContext) -> None:
 #     goal_income = number
 
 def main():
-    updater = Updater(token = 'token', use_context = True)
+    updater = Updater(token = 'put your token here', use_context = True)
     dispatcher = updater.dispatcher
 
     dispatcher.add_handler(CommandHandler("start", handler_start))
