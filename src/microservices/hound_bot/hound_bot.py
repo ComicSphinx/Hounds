@@ -1,7 +1,6 @@
 # @Author: Daniil Maslov (ComicSphinx)
 
 import requests, json, logging, time, schedule
-from telegram import Update, Bot
 from telegram.ext import Updater, CommandHandler, CallbackContext
 from multiprocessing.pool import ThreadPool
 
@@ -35,13 +34,21 @@ def handler_get_income(update, context):
     data = get_data()
     update.message.reply_text("Investment portfolio income: " + str(data['income']) + "Rub")
 
-#TODO: В этой функции буду получать goal_value прямо из чата.
 def handler_set_goal(update, context):
     print(update.effective_chat.id, ":", "/set_goal")
-    goal_value = 300
+    global flag_goal_achieved
+    flag_goal_achieved = False
+
+    try:
+        goal_value = int(context.args[0])
+        print(update.effective_chat.id, ": set goal -", goal_value)
+    except (IndexError, ValueError):
+        update.message.reply_text("Usage: /set_goal <value>")
+    
     #TODO: Нужно ли убивать этот поток после выполнения?
     pool = ThreadPool(processes=1)
     get_parse_data = pool.apply_async(scheduler_income_goal, args=(context, update, goal_value))
+    update.message.reply_text("Goal successfully setted.")
 
 def scheduler_income_goal(context, update, goal_value):
     print(update.effective_chat.id, ":", "launched income scheduler")
