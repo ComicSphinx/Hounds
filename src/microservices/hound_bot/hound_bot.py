@@ -10,55 +10,58 @@ logging.basicConfig(format = '%(asctime)s - %(name)s - %(levelname)s - %(message
 
 logger = logging.getLogger(__name__)
 
+flag_goal_achieved = False
+
 def handler_start(update, context):
     print(update.effective_chat.id, ":", "was connected and used /start")
 
     update.message.reply_text("Hello!")
     update.message.reply_text("Use /get_cost to get cost")
     update.message.reply_text("Use /get_income to get income")
-    update.message.reply_text("Use /get_auto_info")
+    update.message.reply_text("Use /set_goal <value> to set goal")
 
 def get_data():
     data = requests.get("http://127.0.0.1:5000/get/id")
     data = data.json()
     return data
 
-def handler_get_cost(update: Update, context: CallbackContext) -> None:
+def handler_get_cost(update, context):
     print(update.effective_chat.id, ":", "/get_cost")
     data = get_data()
     update.message.reply_text("Investment portfolio value: " + str(data['cost']) + "Rub")
 
-def handler_get_income(update: Update, context: CallbackContext) -> None:
+def handler_get_income(update, context):
     print(update.effective_chat.id, ":", "/get_income")
     data = get_data()
     update.message.reply_text("Investment portfolio income: " + str(data['income']) + "Rub")
 
-def handler_get_auto_info(update: Update, context: CallbackContext) -> None:
-    print(update.effective_chat.id, ":", "/get_auto_info")
-    # TODO: В какой-то момент этот поток нужно убивать
+#TODO: В этой функции буду получать goal_value прямо из чата.
+def handler_set_goal(update, context):
+    print(update.effective_chat.id, ":", "/set_goal")
+    goal_value = 300
+    #TODO: Нужно ли убивать этот поток после выполнения?
     pool = ThreadPool(processes=1)
-    get_parse_data = pool.apply_async(income_scheduler, args=(context, update))
+    get_parse_data = pool.apply_async(scheduler_income_goal, args=(context, update, goal_value))
 
-def income_scheduler(context, update):
+def scheduler_income_goal(context, update, goal_value):
     print(update.effective_chat.id, ":", "launched income scheduler")
-    # do it every hour
-    schedule.every(60).minutes.do(auto_update_info, context=context, update=update)
-    
-    while(True):
+
+    schedule.every(5).seconds.do(track_goal, context=context, update=update, goal_value=goal_value)
+
+    while(flag_goal_achieved == False):
         schedule.run_pending()
 
-# TODO: need to rename
-def auto_update_info(context, update):
-    print(update.effective_chat.id, ":", "auto update income info")
-    goal_income = 300
+def track_goal(context, update, goal_value):
+    print(update.effective_chat.id, ":", "launched tracking goal")
     data = get_data()
 
-    if (goal_income <= float(data['income'])):
-        arg_str = "Congratulations! Goal achieved! Your income:" + str(data['income']) + "Rub"
-        send_message(context, update.effective_chat.id, arg_str)
+    if (goal_value <= float(data['income'])):
+        print(update.effective_chat.id, ":", "Goal achieved")
+        global flag_goal_achieved
+        flag_goal_achieved = True
 
-def send_message(context, chat_id, str):
-    context.bot.sendMessage(chat_id, str)
+        arg_str = "Congratulations! Goal achieved! Your income:" + str(data['income']) + "Rub"
+        context.bot.sendMessage(update.effective_chat.id, arg_str)
 
 # def handler_set_goal(update: Update, context: CallbackContext) -> None:
 #         try:
@@ -86,7 +89,7 @@ def main():
     dispatcher.add_handler(CommandHandler("start", handler_start))
     dispatcher.add_handler(CommandHandler("get_cost", handler_get_cost))
     dispatcher.add_handler(CommandHandler("get_income", handler_get_income))
-    dispatcher.add_handler(CommandHandler("get_auto_info", handler_get_auto_info))
+    dispatcher.add_handler(CommandHandler("set_goal", handler_set_goal))
 
     updater.start_polling()
     updater.idle()
