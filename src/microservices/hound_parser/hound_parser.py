@@ -12,8 +12,10 @@ class parser(Resource):
 
     @app.route("/get/<portfolio_id>",methods=['GET'])
     def get(portfolio_id):
-        link = "link/" + portfolio_id
-        page = requests.get(link)
+        print("I am get", portfolio_id)
+        portfolio_url = "url/" + portfolio_id
+
+        page = requests.get(portfolio_url)
         data = bs(page.text, 'html.parser')
         
         cost = data.find('span', class_= 'dashboard-currency dashboard-card-big-nums rub')

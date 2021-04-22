@@ -21,12 +21,12 @@ def handler_start(update, context):
     update.message.reply_text("Use /get_cost to get cost")
     update.message.reply_text("Use /get_income to get income")
     update.message.reply_text("Use /set_goal <value> to set goal")
-    update.message.reply_text("Use /set_page_url <url> to set portfolio url")
+    update.message.reply_text("Use /set_portfolio_id <id> to set portfolio id")
 
 def get_data(chat_uid):
     user_data = dbu.get_user(chat_uid)
-    url = user_data[0][1]
-    data = requests.get("http://127.0.0.1:5000/get/"+str(url))
+    id = user_data[0][1]
+    data = requests.get("http://127.0.0.1:5000/get/"+str(id))
     data = data.json()
     return data
 
@@ -66,8 +66,9 @@ def scheduler_income_goal(context, update, goal_value):
 
 def track_goal(context, update, goal_value):
     print(update.effective_chat.id, ":", "launched tracking goal")
-    data = get_data()
+    data = get_data(update.effective_chat.id)
 
+    print(data['income'])
     if (goal_value <= float(data['income'])):
         print(update.effective_chat.id, ":", "Goal achieved")
         global flag_goal_achieved
@@ -76,18 +77,18 @@ def track_goal(context, update, goal_value):
         arg_str = "Congratulations! Goal achieved! Your income:" + str(data['income']) + "Rub"
         context.bot.sendMessage(update.effective_chat.id, arg_str)
 
-def handler_set_page_url(update, context):
-    print(update.effective_chat.id, ":", "/set_page_url")
+def handler_set_portfolio_id(update, context):
+    print(update.effective_chat.id, ":", "/set_portfolio_id")
 
     try:
-        portfolio_url = str(context.args[0])
-        column = "portfolio_url"
-        print(update.effective_chat.id, "trying to add portfolio url = ", portfolio_url)
-        dbu.addData(update.effective_chat.id, column, portfolio_url)
+        portfolio_id = str(context.args[0])
+        column = "portfolio_id"
+        print(update.effective_chat.id, "trying to add portfolio id = ", portfolio_id)
+        dbu.addData(update.effective_chat.id, column, portfolio_id)
 
     except (IndexError, ValueError):
-        print(update.effective_chat.id, ": failed attempt to set portfolio url")
-        update.message.reply_text("Usage: /set_page_url <url>")
+        print(update.effective_chat.id, ": failed attempt to set portfolio id")
+        update.message.reply_text("Usage: /set_portfolio_id <id>")
 
 def main():
     if (dbu.verifyDatabaseExist() == 0):
@@ -97,6 +98,7 @@ def main():
     elif (dbu.verifyDatabaseExist() == 1):
         print("Database found")
 
+    # TODO: НЕ ЗАБЫТЬ ЗАТЕРЕТЬ
     updater = Updater(token = 'put your token here', use_context = True)
     dispatcher = updater.dispatcher
 
@@ -105,7 +107,7 @@ def main():
     dispatcher.add_handler(CommandHandler("get_cost", handler_get_cost))
     dispatcher.add_handler(CommandHandler("get_income", handler_get_income))
     dispatcher.add_handler(CommandHandler("set_goal", handler_set_goal))
-    dispatcher.add_handler(CommandHandler("set_page_url", handler_set_page_url))
+    dispatcher.add_handler(CommandHandler("set_portfolio_id", handler_set_portfolio_id))
 
     updater.start_polling()
     updater.idle()

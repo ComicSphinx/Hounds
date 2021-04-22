@@ -15,7 +15,7 @@ def verifyDatabaseExist():
 
 def createDB():
     connection, cursor = connectDB()
-    request = "CREATE TABLE"+tableName+"(chat_uid int, portfolio_url VARCHAR(50), goal_profit int);"
+    request = "CREATE TABLE"+tableName+"(chat_uid int, portfolio_id VARCHAR(50), goal_profit int);"
     executeRequest(request)
     output = saveAndCloseDB(connection)
     print("db created")
@@ -38,7 +38,7 @@ def executeRequest(request):
 
 def addData(chat_uid, column, data):
     print(chat_uid, "attempts to add data")
-    request = "UPDATE" + tableName + "SET " + str(column) + " = '" + str(data) + "' WHERE chat_uid = " + str(chat) 
+    request = "UPDATE" + tableName + "SET " + str(column) + " = '" + str(data) + "' WHERE chat_uid = " + str(chat_uid) 
     if (verifyDBContainsChat(chat_uid) == 1):
         print(chat_uid, "Using request :", request)
         executeRequest(request)
